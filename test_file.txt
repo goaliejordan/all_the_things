@@ -5,3 +5,5 @@ this line was added remotely
 Here is another change.
 
 This change is to test the diff.
+
+This line should be removed.
