@@ -1,2 +1,5 @@
 This is to test for changes local and remote.
-This line was added remotely.
+
+this line was added remotely
+
+Here is another change.
