@@ -82,7 +82,7 @@ On a scale of 1 to 10, with 10 being very strong and 1 being not at all, how wou
 
 8.       Interacts well with parents of children: ___
 
-To the best of your knowledge, has the applicant ever…    (Please answer Y/N)    
+To the best of your knowledge, has the applicant ever... (Please answer Y/N)    
 
 1.       Been convicted or pleaded guilty to any crime (other than minor traffic offenses)?  ____      
 
