@@ -7,9 +7,9 @@ from dropbox.exceptions import ApiError, AuthError
 import sys
 
 # dropbox variables
-ap_key = "rqgmlp4uyg6pgqe"
-ap_secret = "rqgmlp4uyg6pgqe"
-db_token = "qW1XPtvlNYwAAAAAAADHrzd2EiRF1jsDJxKPs47z1CBiKaEEQ2S3e-meP_UWxK2-"
+ap_key = ""
+ap_secret = ""
+db_token = ""
 
 # mp3 variables
 today = str(date.today()).replace("-", "")
