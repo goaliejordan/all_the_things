@@ -12,9 +12,10 @@ ap_secret = "rqgmlp4uyg6pgqe"
 db_token = "qW1XPtvlNYwAAAAAAADHrzd2EiRF1jsDJxKPs47z1CBiKaEEQ2S3e-meP_UWxK2-"
 
 # mp3 variables
-today = str(date.today()).replace("-", "/")
+today = str(date.today()).replace("-", "")
 file_location = "c:\\temp\\"
 file_name = "TheBriefing%s.mp3" % today
+local_copy_mp3 = file_location + file_name
 dropbox_folder = "/TheBriefing"
 upload_path = (dropbox_folder + "/" + file_name)
 
@@ -32,13 +33,13 @@ def ensure_url_exists(url):
 
 
 def download_mp3():
-    urllib.urlretrieve(mp3_url, (file_location + file_name))
+    urllib.urlretrieve(mp3_url, local_copy_mp3)
 
 # Uploads The Briefing MP3 to Dropbox
 
 
 def mp3_upload():
-    with open(file_name, 'rb') as f:
+    with open(local_copy_mp3, 'rb') as f:
         # We use WriteMode=overwrite to make sure that the settings in the file
         # are changed on upload
         print("Uploading " + file_name + " to Dropbox as " + upload_path + "...")
