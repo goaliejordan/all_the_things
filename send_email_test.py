@@ -1,8 +1,8 @@
 import smtplib
 import argparse
 
-gmail_user = 'jordansmitty01@gmail.com'
-gmail_password = '5t0r@g3!'
+gmail_user = ''
+gmail_password = ''
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Send email for background check references.')
