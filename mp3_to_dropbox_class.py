@@ -53,9 +53,9 @@ def remove_month_old_db_mp3():
             dbx.files_delete_v2((dropbox_folder + "/" + entry.name))
 
 
+## START TODO
 
-
-#def remove_month_old_os_mp3():
+# def remove_month_old_os_mp3():
     # Remove mp3s that are older than 30 days from dropbox.
     # get files in OS and check thier time:
     #    for files in os location:
@@ -65,6 +65,12 @@ def remove_month_old_db_mp3():
     #       delete file
     #
     # filetime = datetime.datetime.fromtimestamp(filecreated)
+
+# def download_youtube_mp3():
+
+## END TODO
+
+
 def mp3_upload():
     # Uploads The Briefing MP3 to Dropbox
     dropbox_upload_path = str(upload_path).replace('\\', '/')
