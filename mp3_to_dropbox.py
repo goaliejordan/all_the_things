@@ -115,6 +115,7 @@ if __name__ == '__main__':
     mp3_upload()
 
     # Remove 30 day old files from dropbox
+    remove_month_old_db_mp3()
 
     print "Done!"
 
