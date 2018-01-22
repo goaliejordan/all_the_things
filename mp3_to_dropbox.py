@@ -11,23 +11,6 @@ from dropbox.files import WriteMode
 from dropbox.exceptions import ApiError, AuthError
 
 
-# dropbox variables
-db_token = myconfig.db_token
-
-# mp3 variables
-present = datetime.now()
-
-today = str(date.today()).replace("-", "")
-file_location = "c:\\temp\\"
-file_name = "TheBriefing{}.mp3".format(today)
-local_copy_mp3 = os.path.join(file_location, file_name)
-dropbox_folder = "/TheBriefing"
-upload_path = os.path.join(dropbox_folder, file_name)
-
-# get the url with the date.
-mp3_url = "https://mohler-media-5ox2mshyj.stackpathdns.com/Podcast/{}_TheBriefing.mp3".format(today)
-
-
 def ensure_url_exists(url):
     try:
         request = requests.get(url)
@@ -37,22 +20,21 @@ def ensure_url_exists(url):
         sys.exit(1)
 
 
-def download_mp3():
-    urllib.urlretrieve(mp3_url, local_copy_mp3)
+def download_mp3(url, path):
+    urllib.urlretrieve(url, path)
 
 
-def remove_month_old_db_mp3():
+def remove_month_old_db_mp3(drop_box_object, dropbox_path_to_remove):
     # Remove mp3s that are older than 30 days from dropbox.
-    thirty_days_ago = datetime.now() - timedelta(days=30)
-    entries = dbx.files_list_folder(dropbox_folder)
+    present = datetime.now()
+    thirty_days_ago = present - timedelta(days=30)
+    entries = drop_box_object.files_list_folder(dropbox_path_to_remove)
     for entry in entries.entries:
         file_creation_time = entry.server_modified
         # delete the file
         if file_creation_time < thirty_days_ago:
             print "Deleting dropbox file {}".format(entry.name)
-            dbx.files_delete_v2((dropbox_folder + "/" + entry.name))
-
-
+            drop_box_object.files_delete_v2((dropbox_path_to_remove + "/" + entry.name))
 
 
 #def remove_month_old_os_mp3():
@@ -65,15 +47,17 @@ def remove_month_old_db_mp3():
     #       delete file
     #
     # filetime = datetime.datetime.fromtimestamp(filecreated)
-def mp3_upload():
+
+
+def mp3_upload(drop_box_object, file_name, drop_box_path, local_mp3_file):
     # Uploads The Briefing MP3 to Dropbox
-    dropbox_upload_path = str(upload_path).replace('\\', '/')
-    with open(local_copy_mp3, 'rb') as f:
+    dropbox_upload_path = str(drop_box_path).replace('\\', '/')
+    with open(local_mp3_file, 'rb') as f:
         # We use WriteMode=overwrite to make sure that the settings in the file
         # are changed on upload
         print("Uploading " + file_name + " to Dropbox as " + dropbox_upload_path + "...")
         try:
-            dbx.files_upload(f.read(), dropbox_upload_path, mode= WriteMode('overwrite'))
+            drop_box_object.files_upload(f.read(), dropbox_upload_path, mode= WriteMode('overwrite'))
         except ApiError as err:
             # This checks for the specific error where a user doesn't have
             # enough Dropbox space quota to upload this file
@@ -88,7 +72,19 @@ def mp3_upload():
                 sys.exit()
 
 
-if __name__ == '__main__':
+def main():
+    # dropbox variables
+    db_token = myconfig.db_token
+    # mp3 variables
+    today = str(date.today()).replace("-", "")
+    file_location = "c:\\temp\\"
+    file_name = "TheBriefing{}.mp3".format(today)
+    local_copy_mp3 = os.path.join(file_location, file_name)
+    dropbox_folder = "/TheBriefing"
+    upload_path = os.path.join(dropbox_folder, file_name)
+
+    # get the url with the date.
+    mp3_url = "https://mohler-media-5ox2mshyj.stackpathdns.com/Podcast/{}_TheBriefing.mp3".format(today)
     # Check for an access token
     if len(db_token) == 0:
         sys.exit("ERROR: Looks like you didn't add your access token. "
@@ -109,16 +105,20 @@ if __name__ == '__main__':
     ensure_url_exists(mp3_url)
 
     # Download local copy of mp3
-    download_mp3()
+    download_mp3(mp3_url, local_copy_mp3)
 
     # Upload mp3 to dropbox
-    mp3_upload()
+    mp3_upload(dbx, file_name, upload_path, local_copy_mp3)
 
     # Remove 30 day old files from dropbox
-    remove_month_old_db_mp3()
+    remove_month_old_db_mp3(dbx, dropbox_folder)
 
     print "Done!"
 
 
-help = 'https://discourse.mcneel.com/t/python-variables-and-arguments-best-practices/31440/3'
+if __name__ == '__main__':
+    main()
+
+
+# help = 'https://discourse.mcneel.com/t/python-variables-and-arguments-best-practices/31440/3'
 
