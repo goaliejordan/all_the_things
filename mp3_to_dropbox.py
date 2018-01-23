@@ -1,31 +1,29 @@
+#!/usr/bin/env python2.7
+
+'''Downloads a mp3 from a URL and uploads it to DropBox
+    also removes mp3 that are older to 30 days to save space.'''
+
 import os
 import sys
-import requests
-import urllib
-import time
+#giimport time
 from datetime import date, datetime, timedelta
+import requests
 
-import myconfig
 import dropbox
 from dropbox.files import WriteMode
 from dropbox.exceptions import ApiError, AuthError
-
-
-def ensure_url_exists(url):
-    try:
-        request = requests.get(url)
-        request.raise_for_status()
-    except requests.exceptions.HTTPError as _err:
-        print _err, "The Briefing does not exist for this date."
-        sys.exit(1)
+import myconfig
 
 
 def download_mp3(url, path):
-    urllib.urlretrieve(url, path)
+    '''Download the mp3 from the ULR pull and place in selected path.'''
+    request = requests.get(url)
+    with open(path) as file_:
+        file_.write(request.content)
 
 
 def remove_month_old_db_mp3(drop_box_object, dropbox_path_to_remove):
-    # Remove mp3s that are older than 30 days from dropbox.
+    '''Remove mp3s that are older than 30 days from dropbox.'''
     present = datetime.now()
     thirty_days_ago = present - timedelta(days=30)
     entries = drop_box_object.files_list_folder(dropbox_path_to_remove)
@@ -34,7 +32,8 @@ def remove_month_old_db_mp3(drop_box_object, dropbox_path_to_remove):
         # delete the file
         if file_creation_time < thirty_days_ago:
             print "Deleting dropbox file {}".format(entry.name)
-            drop_box_object.files_delete_v2((dropbox_path_to_remove + "/" + entry.name))
+            removal_path = '{}/{}'.format(dropbox_path_to_remove, entry.name)
+            drop_box_object.files_delete_v2(removal_path)
 
 
 #def remove_month_old_os_mp3():
@@ -50,14 +49,18 @@ def remove_month_old_db_mp3(drop_box_object, dropbox_path_to_remove):
 
 
 def mp3_upload(drop_box_object, file_name, drop_box_path, local_mp3_file):
-    # Uploads The Briefing MP3 to Dropbox
+    '''Uploads downloaded MP3 to Dropbox.'''
     dropbox_upload_path = str(drop_box_path).replace('\\', '/')
-    with open(local_mp3_file, 'rb') as f:
+    with open(local_mp3_file, 'rb') as file_:
         # We use WriteMode=overwrite to make sure that the settings in the file
         # are changed on upload
-        print("Uploading " + file_name + " to Dropbox as " + dropbox_upload_path + "...")
+        print "Uploading {} to Dropbox as {} ...".format(file_name,
+                                                         dropbox_upload_path)
         try:
-            drop_box_object.files_upload(f.read(), dropbox_upload_path, mode= WriteMode('overwrite'))
+            drop_box_object.files_upload(
+                file_.read(),
+                dropbox_upload_path,
+                mode=WriteMode('overwrite'))
         except ApiError as err:
             # This checks for the specific error where a user doesn't have
             # enough Dropbox space quota to upload this file
@@ -73,6 +76,7 @@ def mp3_upload(drop_box_object, file_name, drop_box_path, local_mp3_file):
 
 
 def main():
+    '''Runs all the things to make them work.'''
     # dropbox variables
     db_token = myconfig.db_token
     # mp3 variables
@@ -84,25 +88,28 @@ def main():
     upload_path = os.path.join(dropbox_folder, file_name)
 
     # get the url with the date.
-    mp3_url = "https://mohler-media-5ox2mshyj.stackpathdns.com/Podcast/{}_TheBriefing.mp3".format(today)
+    mp3_url = "https://mohler-media{}_TheBriefing.mp3".format(today)
+
+    # Verify that the mp3 url is valid.
+    if not requests.get(mp3_url).ok:
+        sys.exit(1)
+
     # Check for an access token
     if len(db_token) == 0:
         sys.exit("ERROR: Looks like you didn't add your access token. "
                  "You will need to get this token from dropbox.com.")
 
     # Create an instance of a Dropbox class, which can make requests to the API.
-    print("Creating a Dropbox object...")
+    print "Creating a Dropbox object..."
     dbx = dropbox.Dropbox(db_token)
 
     # Check that the access token is valid
     try:
         dbx.users_get_current_account()
     except AuthError as err:
-        sys.exit("ERROR: Invalid access token; try re-generating an "
-                 "access token from the app console on the web.")
-
-    # Verify that the mp3 url is valid.
-    ensure_url_exists(mp3_url)
+        print err, "ERROR: Invalid access token; try re-generating an "\
+                 "access token from the app console on the web."
+        sys.exit(1)
 
     # Download local copy of mp3
     download_mp3(mp3_url, local_copy_mp3)
@@ -119,6 +126,4 @@ def main():
 if __name__ == '__main__':
     main()
 
-
-# help = 'https://discourse.mcneel.com/t/python-variables-and-arguments-best-practices/31440/3'
 
