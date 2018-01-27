@@ -18,7 +18,7 @@ import myconfig
 def download_mp3(url, path):
     '''Download the mp3 from the ULR pull and place in selected path.'''
     request = requests.get(url)
-    with open(path) as file_:
+    with open(path, 'wb') as file_:
         file_.write(request.content)
 
 
@@ -88,7 +88,7 @@ def main():
     upload_path = os.path.join(dropbox_folder, file_name)
 
     # get the url with the date.
-    mp3_url = "https://mohler-media{}_TheBriefing.mp3".format(today)
+    mp3_url = "https://mohler-media-5ox2mshyj.stackpathdns.com/Podcast/{}_TheBriefing.mp3".format(today)
 
     # Verify that the mp3 url is valid.
     if not requests.get(mp3_url).ok:

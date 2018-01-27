@@ -1,2 +1,7 @@
 
-"https://mohler-media-5ox2mshyj.stackpathdns.com/Podcast/{}_TheBriefing.mp3".format(today)
+# api key for dropbox account
+# dropbox variables
+db_token = " "
+
+# rss feed
+briefing_rss_url = "https://www.albertmohler.com/category/the-briefing/feed/"
