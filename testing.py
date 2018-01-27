@@ -1,10 +1,20 @@
 import feedparser
-import json
+from datetime import datetime
+
+
 
 briefing_rss_url = "https://www.albertmohler.com/category/the-briefing/feed/"
 
 feed = feedparser.parse(briefing_rss_url)
 download_link = []
+
+print feed.headers
+rss_date = feed.headers['last-modified']
+print feed.headers['last-modified'].strip(" GMT")
+
+compare_date = datetime.strptime(rss_date.strip(" GMT"), '%a, %d %b %Y %H:%M:%S')
+print compare_date
+
 
 for item in feed.entries:
     if item["links"][1]["type"] == "audio/mpeg":
