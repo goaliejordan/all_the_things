@@ -1,6 +1,6 @@
 import feedparser
 from datetime import datetime
-
+import time
 
 
 briefing_rss_url = "https://www.albertmohler.com/category/the-briefing/feed/"
@@ -8,13 +8,26 @@ briefing_rss_url = "https://www.albertmohler.com/category/the-briefing/feed/"
 feed = feedparser.parse(briefing_rss_url)
 download_link = []
 
-print feed.headers
-rss_date = feed.headers['last-modified']
-print feed.headers['last-modified'].strip(" GMT")
+#print feed.headers
+#rss_date = feed.headers['last-modified']
+#print feed.headers['last-modified'].strip(" GMT")
 
-compare_date = datetime.strptime(rss_date.strip(" GMT"), '%a, %d %b %Y %H:%M:%S')
-print compare_date
+#compare_date = datetime.strptime(rss_date.strip(" GMT"), '%a, %d %b %Y %H:%M:%S')
+#print compare_date
+older_time = feed.updated_parsed
+newer_time = time.localtime()
+print "testing area"
+print feed.updated_parsed
+print newer_time
+if newer_time < older_time:
+    print "The future is here"
+if newer_time > older_time:
+    print "Things make sense"
+else:
+    print "time is relative"
+print type(feed.updated_parsed)
 
+print "end testing area"
 
 for item in feed.entries:
     if item["links"][1]["type"] == "audio/mpeg":
