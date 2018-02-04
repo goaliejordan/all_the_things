@@ -5,7 +5,6 @@
 
 import os
 import sys
-#giimport time
 from datetime import date, datetime, timedelta
 import requests
 
@@ -22,6 +21,9 @@ def download_mp3(url, path):
         file_.write(request.content)
 
 
+
+
+
 def remove_month_old_db_mp3(drop_box_object, dropbox_path_to_remove):
     '''Remove mp3s that are older than 30 days from dropbox.'''
     present = datetime.now()
@@ -36,16 +38,20 @@ def remove_month_old_db_mp3(drop_box_object, dropbox_path_to_remove):
             drop_box_object.files_delete_v2(removal_path)
 
 
-#def remove_month_old_os_mp3():
-    # Remove mp3s that are older than 30 days from dropbox.
+def remove_month_old_os_mp3(file_location):
     # get files in OS and check thier time:
     #    for files in os location:
-    # filecreated = os.path.getmtime("c:\\temp\\TheBriefing20180103.mp3")
-    #       time.ctime(filecreated)
-    #    #       if filecreated < 30_days_ago
-    #       delete file
-    #
-    # filetime = datetime.datetime.fromtimestamp(filecreated)
+    present = datetime.now()
+    thirty_days_ago = present - timedelta(days=30)
+    mp3_files = os.listdir(file_location)
+    for mp3_file in mp3_files:
+        file_full_path = os.path.join(file_location, mp3_file)
+        file_creation_time = os.path.getctime(file_full_path)
+        if datetime.fromtimestamp(file_creation_time) < thirty_days_ago:
+            try:
+                os.remove(file_full_path)
+            except Exception as error:
+                return error
 
 
 def mp3_upload(drop_box_object, file_name, drop_box_path, local_mp3_file):
@@ -119,6 +125,9 @@ def main():
 
     # Remove 30 day old files from dropbox
     remove_month_old_db_mp3(dbx, dropbox_folder)
+
+    # Remove 30 day old files from OS location
+    remove_month_old_os_mp3(file_location)
 
     print "Done!"
 

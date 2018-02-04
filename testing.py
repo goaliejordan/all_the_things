@@ -1,5 +1,6 @@
 import feedparser
-from datetime import datetime
+from datetime import datetime, timedelta
+import os
 import time
 
 
@@ -14,6 +15,8 @@ download_link = []
 
 #compare_date = datetime.strptime(rss_date.strip(" GMT"), '%a, %d %b %Y %H:%M:%S')
 #print compare_date
+
+'''
 older_time = feed.updated_parsed
 newer_time = time.localtime()
 print "testing area"
@@ -35,7 +38,7 @@ for item in feed.entries:
 
 for link in download_link:
     print type(link)
-
+'''
 #TODO
 #use the last build date header to get the version
 # <lastBuildDate>Thu, 25 Jan 2018 18:02:26 +0000</lastBuildDate>
@@ -48,3 +51,28 @@ for link in download_link:
 #    print '{} : {}'.format(k, v)
 
 
+location = 'f:\\temp\\test\\'
+
+
+def remove_month_old_os_mp3(file_location):
+    # get files in OS and check thier time:
+    #    for files in os location:
+    present = datetime.now()
+    thirty_days_ago = present - timedelta(days=30)
+    mp3_files = os.listdir(file_location)
+    for mp3_file in mp3_files:
+        file_full_path = os.path.join(file_location, mp3_file)
+        file_creation_time = os.path.getctime(file_full_path)
+        print "{}, {}".format(file_full_path, file_creation_time)
+        print thirty_days_ago
+        if datetime.fromtimestamp(file_creation_time) < thirty_days_ago:
+            print 'removing {}'.format(mp3_file)
+            try:
+                os.remove(file_full_path)
+            except Exception as error:
+                return error
+
+
+
+
+remove_month_old_os_mp3(location)
