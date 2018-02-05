@@ -1,7 +1,9 @@
 #!/usr/bin/env python2.7
 
-'''Downloads a mp3 from a URL and uploads it to DropBox
-    also removes mp3 that are older to 30 days to save space.'''
+'''
+Downloads a mp3 from a URL and uploads it to DropBox
+    also removes mp3 that are older to 30 days to save space.
+'''
 
 import os
 import sys
@@ -19,9 +21,6 @@ def download_mp3(url, path):
     request = requests.get(url)
     with open(path, 'wb') as file_:
         file_.write(request.content)
-
-
-
 
 
 def remove_month_old_db_mp3(drop_box_object, dropbox_path_to_remove):
@@ -72,13 +71,14 @@ def mp3_upload(drop_box_object, file_name, drop_box_path, local_mp3_file):
             # enough Dropbox space quota to upload this file
             if (err.error.is_path() and
                     err.error.get_path().reason.is_insufficient_space()):
-                sys.exit("ERROR: Cannot back up; insufficient space.")
+                print "ERROR: Cannot back up; insufficient space."
+                return 1
             elif err.user_message_text:
                 print err.user_message_text
-                sys.exit()
+                return 1
             else:
                 print err
-                sys.exit()
+                return 1
 
 
 def main():
@@ -98,13 +98,14 @@ def main():
 
     # Verify that the mp3 url is valid.
     if not requests.get(mp3_url).ok:
-        sys.exit(1)
+        print "Download link not available"
+        return 1
 
     # Check for an access token
     if len(db_token) == 0:
-        sys.exit("ERROR: Looks like you didn't add your access token. "
-                 "You will need to get this token from dropbox.com.")
-
+        print "ERROR: Looks like you didn't add your access token. \
+               You will need to get this token from dropbox.com."
+        return 1
     # Create an instance of a Dropbox class, which can make requests to the API.
     print "Creating a Dropbox object..."
     dbx = dropbox.Dropbox(db_token)
@@ -115,7 +116,7 @@ def main():
     except AuthError as err:
         print err, "ERROR: Invalid access token; try re-generating an "\
                  "access token from the app console on the web."
-        sys.exit(1)
+        return 1
 
     # Download local copy of mp3
     download_mp3(mp3_url, local_copy_mp3)
@@ -133,6 +134,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
 
 
