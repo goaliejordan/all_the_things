@@ -13,14 +13,13 @@ import requests
 import dropbox
 from dropbox.files import WriteMode
 from dropbox.exceptions import ApiError, AuthError
-import myconfig
 
 
 def download_mp3(url, path):
     '''Download the mp3 from the ULR pull and place in selected path.'''
-    request = requests.get(url)
+    response = requests.get(url)
     with open(path, 'wb') as file_:
-        file_.write(request.content)
+        file_.write(response.content)
 
 
 def is_old(ds, days):
@@ -81,7 +80,7 @@ def mp3_upload(drop_box_object, file_name, drop_box_path, local_mp3_file):
 def main():
     '''Runs all the things to make them work.'''
     # dropbox variables
-    db_token = myconfig.db_token
+    db_token = 'blah'
     # mp3 variables
     today = str(date.today()).replace("-", "")
     file_location = "c:\\temp\\"
