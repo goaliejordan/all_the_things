@@ -23,32 +23,29 @@ def download_mp3(url, path):
         file_.write(request.content)
 
 
-def remove_month_old_db_mp3(drop_box_object, dropbox_path_to_remove):
+def is_old(ds, days):
+    return ds < datetime.now() - timedelta(days=days)
+
+
+def remove_old_db_mp3(drop_box_object, dropbox_path_to_remove, days=30):
     '''Remove mp3s that are older than 30 days from dropbox.'''
-    present = datetime.now()
-    thirty_days_ago = present - timedelta(days=30)
-    entries = drop_box_object.files_list_folder(dropbox_path_to_remove)
-    for entry in entries.entries:
-        file_creation_time = entry.server_modified
-        # delete the file
-        if file_creation_time < thirty_days_ago:
+    result = drop_box_object.files_list_folder(dropbox_path_to_remove)
+    for entry in result.entries:
+        creation_time = entry.server_modified
+        if is_old(creation_time, days):
             print "Deleting dropbox file {}".format(entry.name)
             removal_path = '{}/{}'.format(dropbox_path_to_remove, entry.name)
             drop_box_object.files_delete_v2(removal_path)
 
 
-def remove_month_old_os_mp3(file_location):
+def remove_old_os_mp3(dir_, days=30):
     # get files in OS and check thier time:
-    #    for files in os location:
-    present = datetime.now()
-    thirty_days_ago = present - timedelta(days=30)
-    mp3_files = os.listdir(file_location)
-    for mp3_file in mp3_files:
-        file_full_path = os.path.join(file_location, mp3_file)
-        file_creation_time = os.path.getctime(file_full_path)
-        if datetime.fromtimestamp(file_creation_time) < thirty_days_ago:
+    for mp3_file in os.listdir(dir_):
+        path = os.path.join(dir_, mp3_file)
+        creation_time = os.path.getctime(path)
+        if is_old(datetime.fromtimestamp(creation_time), days):
             try:
-                os.remove(file_full_path)
+                os.remove(path)
             except Exception as error:
                 return error
 
@@ -94,7 +91,8 @@ def main():
     upload_path = os.path.join(dropbox_folder, file_name)
 
     # get the url with the date.
-    mp3_url = "https://mohler-media-5ox2mshyj.stackpathdns.com/Podcast/{}_TheBriefing.mp3".format(today)
+    mp3_url = ("https://mohler-media-5ox2mshyj.stackpathdns.com/Podcast/"
+               "{}_TheBriefing.mp3".format(today))
 
     # Verify that the mp3 url is valid.
     if not requests.get(mp3_url).ok:
@@ -102,11 +100,12 @@ def main():
         return 1
 
     # Check for an access token
-    if len(db_token) == 0:
+    # Checking if list or string is empty should be done like this
+    if not db_token:
         print "ERROR: Looks like you didn't add your access token. \
                You will need to get this token from dropbox.com."
         return 1
-    # Create an instance of a Dropbox class, which can make requests to the API.
+    # Create an instance of a Dropbox class, which can make requests to the API
     print "Creating a Dropbox object..."
     dbx = dropbox.Dropbox(db_token)
 
@@ -125,15 +124,13 @@ def main():
     mp3_upload(dbx, file_name, upload_path, local_copy_mp3)
 
     # Remove 30 day old files from dropbox
-    remove_month_old_db_mp3(dbx, dropbox_folder)
+    remove_old_db_mp3(dbx, dropbox_folder)
 
     # Remove 30 day old files from OS location
-    remove_month_old_os_mp3(file_location)
+    remove_old_os_mp3(file_location)
 
     print "Done!"
 
 
 if __name__ == '__main__':
     sys.exit(main())
-
-
