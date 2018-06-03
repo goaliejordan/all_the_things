@@ -1,0 +1,30 @@
+---
+- hosts: docker-hub
+  gather_facts: False
+  become: yes
+  vars:
+    remote_dir: '/opt/connexity/'
+    service: "{{service}}"
+
+  tasks:
+    - name: Create target directory
+      file:
+        path: "{{ remote_dir + service + '/'}}"
+        state: directory
+        mode: 0755
+
+    - name: Copy project docker-compose.yml
+      copy:
+        src: /etc/ansible/playbooks/{{service}}/docker-compose.yml
+        dest: "{{ remote_dir + service + '/docker-compose.yml' }}"
+      register: output
+
+    - name: Run docker-compose
+      command: chdir="{{remote_dir + service}}" {{ item }}
+      with_items:
+       - /usr/local/bin/docker-compose down
+       - /usr/local/bin/docker-compose up
+      when: (output.changed or force|default(false) == 'true')
+
+	
+	#notes, inventory should exist next to the playbook
