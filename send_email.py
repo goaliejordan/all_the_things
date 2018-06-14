@@ -10,10 +10,14 @@ body = body.format("jordan", "shannon", "caleb", "jordan")
 message = Message(From=sent_from,
                     To=to,
                     charset="utf-8")
-message.Subject = "An HTML Email"
-message.Html = """This email uses <strong>HTML</strong>!"""
-message.Body = body
+message.Subject = subject
+message.Html = """<PRE>{}</PRE>""".format(body)
+#message.Body = body
 
-sender = Mailer('smtp.gmail.com')
+sender = Mailer(host='smtp.gmail.com', 
+                port=465,
+                use_ssl=True,
+                usr='jordansmitty01',
+                pwd='5t0r@g3!')
 sender.send(message)
 
