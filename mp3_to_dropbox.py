@@ -7,32 +7,13 @@ Downloads a mp3 from a URL and uploads it to DropBox
 
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import requests
-import time
 
-import feedparser
 import dropbox
 from dropbox.files import WriteMode
 from dropbox.exceptions import ApiError, AuthError
 import myconfig
-
-
-def get_rss_mp3_info(rss_url):
-    feed = feedparser.parse(rss_url)
-    download_links = []
-    older_time = feed.updated_parsed
-    newer_time = time.localtime()
-
-    if newer_time < older_time:
-        for item in feed.entries:
-            if item["links"][1]["type"] == "audio/mpeg":
-                download_links.append(item["links"][1]["href"])
-                mp3_name = download_links[0].split('/')[-1]
-                return download_links[0], mp3_name
-    else:
-        print "no updated podcasts to download"
-        return 1
 
 
 def download_mp3(url, path):
@@ -46,16 +27,7 @@ def is_old(ds, days):
     return ds < datetime.now() - timedelta(days=days)
 
 
-def check_for_copy_in_db(drop_box_object, db_path, file_name):
-    '''Check for existence of file in dropbox already.'''
-    result = drop_box_object.files_list_folder(db_path)
-    for entry in result.entries:
-        if entry.name == file_name:
-            print "File with that name already exists in DB."
-            return True
-
-
-def remove_old_db_mp3(drop_box_object, dropbox_path_to_remove, days=60):
+def remove_old_db_mp3(drop_box_object, dropbox_path_to_remove, days=30):
     '''Remove mp3s that are older than 30 days from dropbox.'''
     result = drop_box_object.files_list_folder(dropbox_path_to_remove)
     for entry in result.entries:
@@ -67,7 +39,7 @@ def remove_old_db_mp3(drop_box_object, dropbox_path_to_remove, days=60):
 
 
 def remove_old_os_mp3(dir_, days=30):
-    # get files in OS and check their time:
+    # get files in OS and check thier time:
     for mp3_file in os.listdir(dir_):
         path = os.path.join(dir_, mp3_file)
         creation_time = os.path.getctime(path)
@@ -82,7 +54,7 @@ def mp3_upload(drop_box_object, file_name, drop_box_path, local_mp3_file):
     '''Uploads downloaded MP3 to Dropbox.'''
     dropbox_upload_path = str(drop_box_path).replace('\\', '/')
     with open(local_mp3_file, 'rb') as file_:
-        # Use WriteMode=overwrite to make sure that the settings in the file
+        # We use WriteMode=overwrite to make sure that the settings in the file
         # are changed on upload
         print "Uploading {} to Dropbox as {} ...".format(file_name,
                                                          dropbox_upload_path)
@@ -105,21 +77,45 @@ def mp3_upload(drop_box_object, file_name, drop_box_path, local_mp3_file):
                 print err
                 return 1
 
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+        description='Download an MP3 and upload it to the cloud.')
+    parser.add_argument('--cloud-host', '-n',
+                        type=str,
+                        dest='cloud_host',
+                        default='dropbox',
+                        help='Name of cloud service to upload to.'
+                             ' Options: dropbox, google, onedrive.'
+                             ' Default: dropbox')
+    parser.add_argument('--past-mp3-count', '-p',
+                        type=int,
+                        dest='past_mp3_count',
+                        default='1',
+                        help='Number of days for historical mp3 download')
+    parser.add_argument('--reference-email', '-e', type=str, nargs='+',
+                        dest='reference_email',
+                        help='email address of reference(s)')
+
+    args = parser.parse_args()
+    #cloud_host_name = args.cloud_host
+    return args
+
 
 def main():
     '''Runs all the things to make them work.'''
-    # dropbox variables:
+    # dropbox variables
     db_token = myconfig.db_token
-    dropbox_folder = "/TheBriefing"
-
-    # mp3 variables: get file_name and url from RSS feed.
-    rss_feed_url = myconfig.briefing_rss_url
-    mp3_url, file_name = get_rss_mp3_info(rss_feed_url)
-
-    # local system variables:
+    # mp3 variables
+    today = str(date.today()).replace("-", "")
     file_location = "c:\\temp\\"
+    file_name = "TheBriefing{}.mp3".format(today)
     local_copy_mp3 = os.path.join(file_location, file_name)
+    dropbox_folder = "/TheBriefing"
     upload_path = os.path.join(dropbox_folder, file_name)
+
+    # get the url with the date.
+    mp3_url = ("https://mohler-media-5ox2mshyj.stackpathdns.com/Podcast/"
+               "{}_TheBriefing.mp3".format(today))
 
     # Verify that the mp3 url is valid.
     if not requests.get(mp3_url).ok:
@@ -160,4 +156,5 @@ def main():
 
 
 if __name__ == '__main__':
+
     sys.exit(main())
