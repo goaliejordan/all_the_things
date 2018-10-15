@@ -1,2 +1,6 @@
 This is to test for changes local and remote.
+<<<<<<< HEAD
 This is a new line for testing.
+=======
+This should be replaced.
+>>>>>>> 0c772419dbc49efa830a171e52163bb662386fc8
